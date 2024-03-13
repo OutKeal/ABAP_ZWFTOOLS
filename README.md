@@ -78,6 +78,9 @@ GITHUB 项目地址[OutKeal/abap_zwftools: ABAP我的工具包 (github.com)](htt
     -   REG_SET_WORD
     -   REG_GET_WORD
 
+
+## 其它类
+
 -   ZWFT_AUTH_CHECK 常用组织架构的单值/批量权限检查.
 
 -   ZWFT_DYNAMIC_SCREEN 动态生成一个屏幕
