@@ -17,13 +17,19 @@
      <SPRSL>1</SPRSL>
      <ARBGB>ZWFT</ARBGB>
      <MSGNR>002</MSGNR>
-     <TEXT>字段&amp;1不能为空</TEXT>
+     <TEXT>&amp;1不能为空</TEXT>
     </T100>
     <T100>
      <SPRSL>1</SPRSL>
      <ARBGB>ZWFT</ARBGB>
      <MSGNR>003</MSGNR>
      <TEXT>&amp;1字段值&amp;2不正确</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>1</SPRSL>
+     <ARBGB>ZWFT</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>操作已取消</TEXT>
     </T100>
    </T100>
   </asx:values>

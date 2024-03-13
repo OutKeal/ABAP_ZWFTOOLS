@@ -5,36 +5,40 @@ class ZWFT_MESSAGE definition
 
 public section.
 
+  data T_RETURN type BAPIRET2_T .
+
   methods CONSTRUCTOR .
   methods ADD_SINGLE
     importing
       value(MSGTY) type MSGTY
       value(MSGID) type MSGID
       value(MSGNO) type MSGNO
-      value(MSGV1) type MSGV1 optional
-      value(MSGV2) type MSGV2 optional
-      value(MSGV3) type MSGV3 optional
-      value(MSGV4) type MSGV4 optional .
+      value(MSGV1) type CLIKE optional
+      value(MSGV2) type CLIKE optional
+      value(MSGV3) type CLIKE optional
+      value(MSGV4) type CLIKE optional .
   methods ADD_LINE
     importing
       value(IS_RETURN) type BAPIRET2 .
   methods ADD_TABLE
     importing
       value(IT_RETURN) type BAPIRET2_T .
+  methods ADD_SINGLE_SY .
   methods GET_RETURN
     returning
       value(ET_RETURN) type BAPIRET2_T .
   methods GET_ERROR
     returning
       value(ERROR) type ABAP_BOOL .
+  methods POP_ALL_MSG
+    importing
+      value(REFRESH) type ABAP_BOOL optional .
   methods POP_MSG
     importing
       value(REFRESH) type ABAP_BOOL optional .
   methods FLUSH .
 protected section.
 private section.
-
-  data T_RETURN type BAPIRET2_T .
 ENDCLASS.
 
 
@@ -90,7 +94,66 @@ CLASS ZWFT_MESSAGE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD POP_MSG.
+  METHOD pop_msg.
+    CHECK t_return IS NOT INITIAL.
+    DELETE ADJACENT DUPLICATES FROM t_return.
+    IF lines( t_return ) = 1.
+      READ TABLE t_return INTO DATA(l_return) INDEX 1 .
+
+      MESSAGE ID l_return-id TYPE 'S'
+      NUMBER l_return-number
+      WITH l_return-message_v1
+       l_return-message_v2
+       l_return-message_v3
+       l_return-message_v4 DISPLAY LIKE l_return-type.
+      IF refresh EQ abap_true.
+        flush( ).
+      ENDIF.
+      RETURN.
+    ENDIF.
+    DATA(log) = NEW cl_isu_error_log( ).
+    LOOP AT t_return INTO l_return WHERE type CA 'EAX'.
+      log->add_message( x_msgid = l_return-id
+                                         x_msgty = l_return-type
+                                         x_msgno = l_return-number
+                                         x_msgv1 = l_return-message_v1
+                                         x_msgv2 = l_return-message_v2
+                                         x_msgv3 = l_return-message_v3
+                                         x_msgv4 = l_return-message_v4 ).
+    ENDLOOP.
+    IF sy-subrc NE 0.
+      LOOP AT t_return INTO l_return .
+        log->add_message( x_msgid = l_return-id
+        x_msgty = l_return-type
+        x_msgno = l_return-number
+        x_msgv1 = l_return-message_v1
+        x_msgv2 = l_return-message_v2
+        x_msgv3 = l_return-message_v3
+        x_msgv4 = l_return-message_v4 ).
+      ENDLOOP.
+    ENDIF.
+    log->display_messages( ).
+
+    IF refresh EQ abap_true.
+      flush( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD add_single_sy.
+    APPEND VALUE #( type = sy-msgty
+                                  id = sy-msgid
+                                  number = sy-msgno
+                                  message_v1 = sy-msgv1
+                                  message_v2 = sy-msgv2
+                                  message_v3 = sy-msgv3
+                                  message_v4 = sy-msgv4
+                                  ) TO t_return.
+  ENDMETHOD.
+
+
+  METHOD pop_all_msg.
 
     DATA:lt_message TYPE TABLE OF esp1_message_wa_type .
     DATA:it_message TYPE TABLE OF esp1_message_wa_type .
@@ -107,7 +170,7 @@ CLASS ZWFT_MESSAGE IMPLEMENTATION.
       msgv4 = is_return-message_v4   ) TO lt_message.
     ENDLOOP.
 
-    LOOP AT lt_message INTO DATA(is_message) WHERE msgty CA 'EAX'.
+    LOOP AT lt_message INTO DATA(is_message) .
       APPEND is_message TO it_message.
     ENDLOOP.
     IF sy-subrc EQ 0.
@@ -127,7 +190,7 @@ CLASS ZWFT_MESSAGE IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    IF refresh IS NOT INITIAL.
+    IF refresh EQ abap_true.
       flush( ).
     ENDIF.
 

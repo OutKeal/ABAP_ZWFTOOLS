@@ -16,7 +16,7 @@ FUNCTION zwft_check_value.
   DATA msg TYPE char40.
   DATA: lt_doma_list LIKE TABLE OF zwft_doma_list WITH HEADER LINE.
   DATA: lt_doma_value LIKE TABLE OF zwft_doma_value WITH HEADER LINE.
-  IF line IS INITIAL AND tab IS INITIAL.
+  IF line IS INITIAL AND tab[] IS INITIAL.
     RETURN.
   ENDIF.
 
@@ -60,7 +60,7 @@ FUNCTION zwft_check_value.
   ENDIF.
 
 
-  IF tab IS NOT INITIAL.
+  IF tab[] IS NOT INITIAL.
     LOOP AT tab .
       tabix = sy-tabix.
       LOOP AT rule.
@@ -68,7 +68,7 @@ FUNCTION zwft_check_value.
         CHECK sy-subrc EQ 0.
 
         IF <fs_value> IS INITIAL AND rule-notnull = 'X'.
-          PERFORM add_msg TABLES ret USING 'E' 002 tabix rule-ddtext .
+          PERFORM add_msg TABLES ret USING 'E' 002 rule-ddtext ''.
           CONTINUE.
         ENDIF.
 

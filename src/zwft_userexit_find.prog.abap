@@ -164,7 +164,7 @@ DATA: i_submit TYPE STANDARD TABLE OF t_submit WITH HEADER LINE.
 
 * Source code
 TYPES: BEGIN OF t_sourcetab,                       "#EC * (SLIN l??gt!)
-         line(200),                                "#EC * (SLIN l??gt!)
+         line(1000),                                "#EC * (SLIN l??gt!)
        END OF t_sourcetab.                         "#EC * (SLIN l??gt!)
 DATA: sourcetab TYPE STANDARD TABLE OF t_sourcetab WITH HEADER LINE.
 DATA c_overflow(30000) TYPE c.

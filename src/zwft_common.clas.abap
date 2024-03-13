@@ -17,6 +17,15 @@ public section.
         t_sort       TYPE lvc_t_sort,
       END OF s_type_metadata .
   types:
+    tt_rsmpe_funl TYPE TABLE OF rsmpe_funl .
+  types:
+    BEGIN OF ty_coltext ,
+        fieldname TYPE fieldname,
+        coltext   TYPE coltext,
+      END OF ty_coltext .
+  types:
+    tt_coltext TYPE TABLE OF ty_coltext .
+  types:
     BEGIN OF ty_fcat,
         col_pos   TYPE col_pos,
         fieldname TYPE fieldname,
@@ -37,12 +46,17 @@ public section.
         domval   TYPE char50,
         ddtext   TYPE val_text,
       END OF ty_doma_value .
+  types:
+    TT_RANGES_MATKL type TABLE of WRBA_RANGE_MATKL_STRUC .
 
   data:
     doma_list TYPE TABLE OF ty_doma_list .
   data:
     doma_value TYPE TABLE OF ty_doma_value .
 
+  class-methods SYSTEM_CALLSTACK
+    returning
+      value(CALLST) type SYS_CALLST .
   class-methods GET_GUID32
     returning
       value(RV_GUID32) type SYSUUID_C32 .
@@ -70,11 +84,34 @@ public section.
       !CS_RETURN type BAPIRET2 optional
       !CT_RETURN type BAPIRET2_TAB optional .
   class-methods SEARCH_VENDOR
+    importing
+      !WERKS type WERKS_D optional
     changing
-      !LIFNR type ANY .
+      !LIFNR type ANY optional
+      !NAME type ANY optional .
   class-methods SEARCH_CUSTOMER
+    importing
+      !WERKS type WERKS_D optional
     changing
-      !KUNNR type ANY .
+      !KUNNR type ANY optional
+      !NAME type ANY optional .
+  class-methods SEARCH_MATERIAL
+    importing
+      !WERKS type WERKS_D default 'RFDC'
+      !RANGE_MTART type MD_RANGE_T_MTART optional
+      !RANGE_MATKL type TT_RANGES_MATKL optional
+    changing
+      !MATNR type ANY .
+  class-methods SEARCH_DATA
+    importing
+      !VALUE_FIELD type DFIES-FIELDNAME
+      !VALUE_TAB type TABLE
+      !NAME_FIELD type DFIES-FIELDNAME optional
+      !READONLY type ABAP_BOOL optional
+      !TITEL type CLIKE default '选择值'
+      !LINE type CLIKE default '请选择值'
+    returning
+      value(RETURN_VALUE) type CHAR20 .
   class-methods ADD_GOS_RELATIONSHIP
     importing
       value(OBJKEY1) type ANY optional
@@ -87,6 +124,15 @@ public section.
       value(IV_TEXT) type CLIKE optional
     returning
       value(EV_RESULT) type ABAP_BOOL .
+  class-methods CONFIRM_DATE
+    importing
+      !IV_DATETEXT type CLIKE optional
+      !IV_TEXT type CLIKE optional
+      !IV_DEFAULT type SY-DATUM optional
+    exporting
+      value(EV_DATE) type SY-DATUM
+    returning
+      value(BOOL) type ABAP_BOOL .
   class-methods GET_USER_NAME
     importing
       value(IV_USER_ID) type CHAR12 optional
@@ -103,6 +149,14 @@ public section.
       !NUMBER type ANY optional
     returning
       value(RV_OK) type ABAP_BOOL .
+  class-methods NUMBER_TO_CHINESE
+    importing
+      !I_MONEY type CLIKE
+    returning
+      value(R_TEXT) type CHAR50 .
+  class-methods NUMBER_CONV_END_NO_ZERO
+    changing
+      !C_TEXT type CLIKE .
   class-methods DATE_OUTPUT
     importing
       value(DATE) type DATUM
@@ -116,6 +170,11 @@ public section.
       value(DATE) type DATUM
     returning
       value(RV_OK) type ABAP_BOOL .
+  class-methods DATE_TO_CHINESE
+    importing
+      !I_DATE type CLIKE
+    returning
+      value(R_TEXT) type CHAR50 .
   class-methods CALL_TRANSATION
     importing
       value(TYPE) type CHAR10
@@ -125,13 +184,21 @@ public section.
   class-methods CALL_TRANSATION_BY_LINE
     importing
       value(LINE) type ANY
-      value(FIELDNAME) type FIELDNAME .
+      value(FIELDNAME) type FIELDNAME
+    returning
+      value(BOOL) type ABAP_BOOL .
   class-methods FILE_DOWNLOAD_TO_CSV
     importing
       !DATA type TABLE .
   class-methods FILE_DOWNLOAD_TO_EXCEL
     importing
-      value(DATA) type TABLE .
+      value(DATA) type TABLE
+      value(COLTEXT) type TT_COLTEXT optional .
+  class-methods FILE_UPLOAD_BIN
+    importing
+      !FILETYPE type CHAR10 default 'BIN'
+    returning
+      value(DATA) type XSTRING .
   class-methods FILE_UPLOAD_FROM_EXCEL
     importing
       value(BEGIN_COL) type I default 1
@@ -153,7 +220,9 @@ public section.
   class-methods FILE_DOWNLOAD_TEMPLATE
     importing
       !IV_OBJID type W3OBJID
-      !IV_FILENAME type RLGRAP-FILENAME .
+      !IV_FILENAME type RLGRAP-FILENAME optional
+    returning
+      value(R_BOOL) type ABAP_BOOL .
   class-methods PROGRESSBAR_SHOW
     importing
       !IV_CURRENT type I
@@ -202,7 +271,7 @@ public section.
     importing
       value(DAYS) type INT2 default 15
     changing
-      value(SDATE) type ref to DATA .
+      value(SDATE) type TABLE .
   class-methods SET_INIT_ICON
     importing
       value(STATUS) type CHAR1
@@ -223,6 +292,12 @@ public section.
       !IV_TABNAME type CHAR30
     returning
       value(RT_FCAT) type LVC_T_FCAT .
+  class-methods FCAT_FROM_CONFIG
+    importing
+      !I_REPID type REPID
+      !I_NAME type CLIKE
+    changing
+      !CT_FCAT type LVC_T_FCAT .
   class-methods GET_TABLE_FIELDS
     importing
       value(IV_TABNAME) type TABNAME
@@ -233,11 +308,21 @@ public section.
       value(IV_TABNAME) type TABNAME
     returning
       value(RT_X031L) type DDX031LTAB .
+  class-methods GET_FIELDS_DFIES_BY_DATA
+    importing
+      value(DATA) type ANY
+    returning
+      value(RT_DFIES) type DFIES_TAB .
   class-methods GET_FIELDS_DFIES
     importing
       value(IV_TABNAME) type TABNAME
     returning
       value(RT_DFIES) type DFIES_TAB .
+  class-methods GET_NEXT_CODE_36
+    importing
+      !I_CODE type CHAR1
+    returning
+      value(E_CODE) type CHAR1 .
   class-methods CREATE_TABLE_DFIES
     importing
       !IT_DFIES type DFIES_TAB
@@ -290,18 +375,70 @@ public section.
       !DATA type ref to DATA
     returning
       value(METADATA) type S_TYPE_METADATA .
-  class-methods GET_DYNNR_FIELD
+  class-methods GET_SELECT_DYNNR_FIELD
     importing
       !PROGRAM type PROGRAM
       !DYNNR type DYNNR
     exporting
       !SCREEN_SSCR type RSBK_T_RSSCR
       !GLOBAL_SSCR type RSBK_T_RSSCR .
+  class-methods GET_DYNNR_FIELD
+    importing
+      !DYNNR type DYNNR
+      !PROGNAME type PROGNAME
+    returning
+      value(FIELD_LIST) type ZWFT_TT_D021S .
+  class-methods GET_STATUS_FUNCTIONS
+    importing
+      !PROGRAM type TRDIR-NAME
+      !STATUS type CLIKE
+    exporting
+      value(FUNCTIONS) type TT_RSMPE_FUNL .
+  class-methods GET_SCREEN_XY_POINT
+    exporting
+      !CHARX type I
+      !CHARY type I
+      !X type I
+      !Y type I .
   class-methods FIX_DATA_COLUMN_BY_FCAT
     importing
       !FCAT type LVC_T_FCAT
     changing
       !DATA type ref to DATA .
+  class-methods GET_FUNCTION_INTERFACE
+    importing
+      value(I_FUNCNAME) type RS38L_FNAM
+    exporting
+      value(ET_RSEXC) type RSFB_EXC
+    returning
+      value(RT_PARAMS) type BGRFC_FUNINT_T .
+  class-methods DATE_GET_LAST_DAY_OF_MONTH
+    importing
+      !I_DATE type BUDAT
+    returning
+      value(R_DATE) type BUDAT .
+  class-methods REG_GET_DWORD
+    importing
+      !KEY type STRING default 'Software\SAP\SAPGUI Front\SAP Frontend Server\Customize'
+      !VALUE type STRING optional
+    returning
+      value(DWORD_VALUE) type I .
+  class-methods REG_SET_DWORD
+    importing
+      !KEY type STRING default 'Software\SAP\SAPGUI Front\SAP Frontend Server\Customize'
+      !VALUE type STRING optional
+      value(DWORD_VALUE) type I .
+  class-methods REG_SET_WORD
+    importing
+      !KEY type STRING default 'Software\SAP\SAPGUI Front\SAP Frontend Server\Customize'
+      !VALUE_NAME type STRING
+      !VALUE type STRING .
+  class-methods REG_GET_WORD
+    importing
+      !KEY type STRING default 'Software\SAP\SAPGUI Front\SAP Frontend Server\Customize'
+      !VALUE_NAME type STRING optional
+    returning
+      value(VALUE) type STRING .
   PROTECTED SECTION.
 private section.
 ENDCLASS.
@@ -811,6 +948,7 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
           lv_filename TYPE string,
           lv_path     TYPE string,
           lv_fullpath TYPE string.
+    r_bool = abap_true.
 
 * 判断模版是否存在
     SELECT SINGLE *
@@ -819,27 +957,31 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
     AND   objid EQ @iv_objid
     INTO CORRESPONDING FIELDS OF @ls_key.
     IF sy-subrc NE 0.
-      MESSAGE s899(mm) WITH |{ iv_objid }不存在| .
+      r_bool = abap_false.
+*      MESSAGE s899(mm) WITH |{ iv_objid }不存在| .
       RETURN.
     ENDIF.
 
     lv_filename = iv_filename.
-    cl_gui_frontend_services=>file_save_dialog(
-    EXPORTING
-      default_extension         = cl_gui_frontend_services=>filetype_excel
-      default_file_name         = lv_filename
-    CHANGING
-      filename                  = lv_filename
-      path                      = lv_path
-      fullpath                  = lv_fullpath
-    EXCEPTIONS
-      cntl_error                = 1
-      error_no_gui              = 2
-      not_supported_by_gui      = 3
-      invalid_default_file_name = 4
-      OTHERS                    = 5 ).
-    IF sy-subrc NE 0.
-    ENDIF.
+
+    DATA(r_file) = zwft_common=>file_get_save_path( ).
+    lv_fullpath = r_file.
+*    cl_gui_frontend_services=>file_save_dialog(
+*    EXPORTING
+*      default_extension         = cl_gui_frontend_services=>filetype_excel
+*      default_file_name         = lv_filename
+*    CHANGING
+*      filename                  = lv_filename
+*      path                      = lv_path
+*      fullpath                  = lv_fullpath
+*    EXCEPTIONS
+*      cntl_error                = 1
+*      error_no_gui              = 2
+*      not_supported_by_gui      = 3
+*      invalid_default_file_name = 4
+*      OTHERS                    = 5 ).
+*    IF sy-subrc NE 0.
+*    ENDIF.
     CHECK lv_fullpath NE ''.
 
 * 下载SMW0模版
@@ -924,15 +1066,20 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
     cl_salv_table=>factory(  IMPORTING  r_salv_table = salv
     CHANGING t_table = <cdata> ).
 
-*    DATA(fcat) = cl_salv_controller_metadata=>get_lvc_fieldcatalog(
-*          r_columns      = salv->get_columns( )
-*          r_aggregations = salv->get_aggregations( ) ).
-*    LOOP AT fcat INTO DATA(ls_fcat).
-*      DATA(lr_column) = salv->get_columns( )->get_column( ls_fcat-fieldname ).
-*      lr_column->set_short_text( |{ ls_fcat-reptext }| ) .
-*      lr_column->set_medium_text( |{ ls_fcat-reptext }| ) .
-*      lr_column->set_long_text( |{ ls_fcat-reptext }| ) .
-*    ENDLOOP.
+    DATA(fcat) = cl_salv_controller_metadata=>get_lvc_fieldcatalog(
+          r_columns      = salv->get_columns( )
+          r_aggregations = salv->get_aggregations( ) ).
+    LOOP AT coltext INTO DATA(l_coltext).
+      TRY.
+          DATA(lr_column) = salv->get_columns( )->get_column( l_coltext-fieldname ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+      CHECK lr_column IS BOUND.
+      lr_column->set_short_text( |{ l_coltext-coltext }| ) .
+      lr_column->set_medium_text( |{ l_coltext-coltext }| ) .
+      lr_column->set_long_text( |{ l_coltext-coltext }| ) .
+    ENDLOOP.
     cl_salv_data_services=>download_xml_to_file(
     filename = filename
     xcontent = salv->to_xml( '10' ) ).
@@ -1094,43 +1241,73 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
 
     DATA l_customer TYPE customer_found.
     DATA:l_kunnr TYPE kunnr.
+    DATA:long_kunnr TYPE kunnr.
 
     CHECK kunnr IS NOT INITIAL .
-
-    l_kunnr = |{ kunnr }ALPHA = IN|.
-    SELECT SINGLE kunnr INTO l_kunnr
-    FROM kna1
-    WHERE kunnr = l_kunnr
-    AND name1 = l_kunnr.
+    CLEAR name.
+    kunnr = |{ kunnr ALPHA = OUT }|.
+    l_kunnr = |{ kunnr ALPHA = IN }|.
+    IF werks IS INITIAL.
+      SELECT SINGLE kna1~kunnr,name1 INTO ( @l_kunnr,@name )
+      FROM kna1
+      WHERE kna1~kunnr = @l_kunnr
+      OR kna1~name1 = @l_kunnr.
+    ELSE.
+      SELECT SINGLE kna1~kunnr,kna1~name1 INTO ( @l_kunnr,@name )
+        FROM kna1 INNER JOIN knvv ON kna1~kunnr = knvv~kunnr
+        INNER JOIN t001w ON knvv~vkorg = t001w~vkorg AND t001w~werks = @werks
+      WHERE kna1~kunnr = @l_kunnr
+      OR kna1~name1 = @l_kunnr.
+    ENDIF.
     IF sy-subrc EQ 0.
       kunnr = l_kunnr.
       RETURN.
     ENDIF.
 
-    kunnr = |%{ kunnr }%|.
+    long_kunnr = |%{ kunnr }%|.
+    IF werks IS INITIAL.
+      SELECT
+      DISTINCT
+      kna1~kunnr,
+      kna1~name1 AS name,
+      kna1~sortl AS sort1
+      INTO CORRESPONDING FIELDS OF TABLE @lt_customer_found
+      FROM kna1
+      WHERE kna1~kunnr LIKE @long_kunnr
+      OR kna1~name1 LIKE @long_kunnr
+      OR kna1~sortl LIKE @long_kunnr.
+    ELSE.
+      SELECT
+      DISTINCT
+      kna1~kunnr,
+      kna1~name1 AS name,
+      kna1~sortl AS sort1
+      INTO CORRESPONDING FIELDS OF TABLE @lt_customer_found
+      FROM kna1 INNER JOIN knvv ON kna1~kunnr = knvv~kunnr
+      INNER JOIN t001w ON knvv~vkorg = t001w~vkorg AND t001w~werks = @werks
+      WHERE kna1~kunnr LIKE @long_kunnr
+      OR kna1~name1 LIKE @long_kunnr
+      OR kna1~sortl LIKE @long_kunnr.
 
-    SELECT
-    DISTINCT
-    kunnr
-    name1 AS name
-    sortl AS sort1
-    INTO CORRESPONDING FIELDS OF TABLE lt_customer_found
-    FROM kna1
-    WHERE kunnr LIKE kunnr
-    OR name1 LIKE kunnr
-    OR sortl LIKE kunnr.
+    ENDIF.
 
     IF lines( lt_customer_found ) EQ 0.
       CLEAR kunnr.
-    ELSEIF lines( lt_customer_found ) EQ 1.
+      CLEAR name.
+    ELSEIF lines( lt_customer_found ) EQ 1 .
       kunnr = lt_customer_found[ 1 ]-kunnr.
+      name = lt_customer_found[ 1 ]-name.
     ELSE.
       CALL FUNCTION 'MM_CUSTOMER_SHOW_HITS'
         IMPORTING
           e_customer_return = l_customer
         TABLES
           t_customer_value  = lt_customer_found.
-      kunnr = l_customer-kunnr.
+      kunnr = |{ l_customer-kunnr ALPHA = IN }|.
+      READ TABLE lt_customer_found INTO DATA(ls_customer) WITH KEY kunnr = kunnr.
+      IF sy-subrc EQ 0.
+        name = ls_customer-name.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -1140,49 +1317,79 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
     DATA:  lt_vendors      TYPE TABLE OF  vendor_found .
     DATA:  l_vendor        TYPE vendor_found.
     DATA:  l_lifnr TYPE lifnr.
+    DATA:  long_lifnr TYPE char20.
 
     CHECK lifnr IS NOT INITIAL .
+    lifnr = |{ lifnr ALPHA = OUT }|.
+    l_lifnr = |{ lifnr ALPHA = IN }|.
 
-    l_lifnr = |{ lifnr }ALPHA = IN|.
+    IF werks IS INITIAL.
+      SELECT
+      SINGLE lifnr,name1
+      INTO ( @l_lifnr,@name )
+      FROM lfa1
+      WHERE lifnr = @l_lifnr
+      OR name1 = @l_lifnr.
+    ELSE.
+      SELECT
+      SINGLE lfa1~lifnr,lfa1~name1
+      INTO ( @l_lifnr,@name )
+      FROM lfa1 INNER JOIN lfm1 ON lfa1~lifnr = lfm1~lifnr
+      INNER JOIN t001w ON lfm1~ekorg = t001w~ekorg AND t001w~werks = @werks
+      WHERE lfa1~lifnr = @l_lifnr
+      OR lfa1~name1 = @l_lifnr.
+    ENDIF.
 
-    SELECT
-    SINGLE lifnr
-    INTO l_lifnr
-    FROM lfa1
-    WHERE lifnr = l_lifnr
-    OR name1 = l_lifnr.
     IF sy-subrc EQ 0.
       lifnr = l_lifnr.
       RETURN.
     ENDIF.
 
-    lifnr = |%{ lifnr }%|.
+    long_lifnr = |%{ lifnr }%|.
 
-    SELECT
-    lifnr
-    name1 AS name
-    sortl AS sort1
-    INTO CORRESPONDING FIELDS OF TABLE lt_vendors
-    FROM lfa1
-    WHERE lifnr LIKE lifnr
-    OR name1 LIKE lifnr
-    OR sortl LIKE lifnr .
+    IF werks IS INITIAL.
+      SELECT
+      lifnr,
+      name1 AS name,
+      sortl AS sort1
+      INTO CORRESPONDING FIELDS OF TABLE @lt_vendors
+      FROM lfa1
+      WHERE lifnr LIKE @long_lifnr
+      OR name1 LIKE @long_lifnr
+      OR sortl LIKE @long_lifnr .
+    ELSE.
+      SELECT
+      lfa1~lifnr,
+      lfa1~name1 AS name,
+      lfa1~sortl AS sort1
+      INTO CORRESPONDING FIELDS OF TABLE @lt_vendors
+      FROM lfa1 INNER JOIN lfm1 ON lfa1~lifnr = lfm1~lifnr
+      INNER JOIN t001w ON lfm1~ekorg = t001w~ekorg AND t001w~werks = @werks
+      WHERE lfa1~lifnr LIKE @long_lifnr
+      OR lfa1~name1 LIKE @long_lifnr
+      OR lfa1~sortl LIKE @long_lifnr .
+    ENDIF.
 
 
     IF lines( lt_vendors ) EQ 0.
       CLEAR lifnr.
+      CLEAR name.
     ELSEIF lines( lt_vendors ) EQ 1.
       lifnr = lt_vendors[ 1 ]-lifnr.
+      name = lt_vendors[ 1 ]-name.
     ELSE.
       CALL FUNCTION 'MM_VENDOR_SHOW_HITS'
         IMPORTING
           e_vendor_return = l_vendor
         TABLES
           t_vendor_value  = lt_vendors.
-      lifnr = l_vendor-lifnr.
+
+      lifnr = |{ l_vendor-lifnr ALPHA = IN }|.
+      READ TABLE lt_vendors INTO DATA(ls_vendor) WITH KEY lifnr = lifnr.
+      IF sy-subrc EQ 0.
+        name = ls_vendor-name.
+      ENDIF.
     ENDIF.
-
-
   ENDMETHOD.
 
 
@@ -1311,29 +1518,29 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
 
 
   METHOD set_init_sdate.
-    FIELD-SYMBOLS <ft_value> TYPE table.
-    FIELD-SYMBOLS <fs_value> TYPE any.
+  FIELD-SYMBOLS <ft_value> TYPE TABLE.
+  FIELD-SYMBOLS <fs_value> TYPE ANY.
 
-    ASSIGN sdate->* TO  <ft_value>.
+  ASSIGN sdate TO  <ft_value>.
 
-    CHECK <ft_value> IS INITIAL.
-    APPEND INITIAL LINE TO <ft_value> ASSIGNING FIELD-SYMBOL(<fs_line>).
+  CHECK <ft_value> IS INITIAL.
+  APPEND INITIAL LINE TO <ft_value> ASSIGNING FIELD-SYMBOL(<fs_line>).
 
-    ASSIGN COMPONENT 'SIGN' OF STRUCTURE <fs_line> TO <fs_value>.
-    CHECK sy-subrc EQ 0.
-    <fs_value> = 'I'.
+  ASSIGN COMPONENT 'SIGN' OF STRUCTURE <fs_line> TO <fs_value>.
+  CHECK sy-subrc EQ 0.
+  <fs_value> = 'I'.
 
-    ASSIGN COMPONENT 'OPTION' OF STRUCTURE <fs_line> TO <fs_value>.
-    CHECK sy-subrc EQ 0.
-    <fs_value> = 'BT'.
+  ASSIGN COMPONENT 'OPTION' OF STRUCTURE <fs_line> TO <fs_value>.
+  CHECK sy-subrc EQ 0.
+  <fs_value> = 'BT'.
 
-    ASSIGN COMPONENT 'LOW' OF STRUCTURE <fs_line> TO <fs_value>.
-    CHECK sy-subrc EQ 0.
-    <fs_value> = sy-datum - days.
+  ASSIGN COMPONENT 'LOW' OF STRUCTURE <fs_line> TO <fs_value>.
+  CHECK sy-subrc EQ 0.
+  <fs_value> = sy-datum - days.
 
-    ASSIGN COMPONENT 'HIGH' OF STRUCTURE <fs_line> TO <fs_value>.
-    CHECK sy-subrc EQ 0.
-    <fs_value> = sy-datum.
+  ASSIGN COMPONENT 'HIGH' OF STRUCTURE <fs_line> TO <fs_value>.
+  CHECK sy-subrc EQ 0.
+  <fs_value> = sy-datum.
 
   ENDMETHOD.
 
@@ -1392,9 +1599,15 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
     DATA lo_data TYPE REF TO cl_abap_datadescr.
     LOOP AT it_dfies ASSIGNING FIELD-SYMBOL(<ls_dfies>).
       APPEND INITIAL LINE TO lt_compo ASSIGNING FIELD-SYMBOL(<ls_compo>).
-      <ls_compo>-name = <ls_dfies>-fieldname.
-      lo_data = CAST cl_abap_datadescr(
-      cl_abap_datadescr=>describe_by_name( |{ <ls_dfies>-tabname }-{ <ls_dfies>-fieldname }| ) ).
+      IF <ls_dfies>-tabname IS NOT INITIAL.
+        <ls_compo>-name = <ls_dfies>-fieldname.
+        lo_data = CAST cl_abap_datadescr(
+        cl_abap_datadescr=>describe_by_name( |{ <ls_dfies>-tabname }-{ <ls_dfies>-fieldname }| ) ).
+      ELSEIF <ls_dfies>-rollname IS NOT INITIAL.
+        <ls_compo>-name = <ls_dfies>-fieldname.
+        lo_data = CAST cl_abap_datadescr(
+        cl_abap_datadescr=>describe_by_name( <ls_dfies>-rollname ) ).
+      ENDIF.
       <ls_compo>-type = lo_data.
     ENDLOOP.
     rv_ok = zwft_common=>create_table_compo( EXPORTING it_compo = lt_compo CHANGING ct_data = ct_data ).
@@ -1447,39 +1660,41 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
 
 
   METHOD call_transation_by_line.
-
+    bool = abap_false.
     ASSIGN COMPONENT fieldname OF STRUCTURE line TO FIELD-SYMBOL(<value>).
     CHECK sy-subrc EQ 0.
+    CHECK <value> IS NOT INITIAL.
 
     CASE fieldname.
       WHEN 'BANFN' ."采购申请
         SET PARAMETER ID 'BAN' FIELD <value>.
         CALL TRANSACTION 'ME53N' AND SKIP FIRST SCREEN.
+        bool = abap_true.
 
       WHEN 'EBELN' .  "采购订单
         SET PARAMETER ID 'BES' FIELD <value>.
         CALL TRANSACTION  'ME23N' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'VBELN_ASN' . "内向交货单"
         SET PARAMETER ID 'VL' FIELD <value>.
         CALL TRANSACTION 'VL33N' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'VBELN_VA'. "销售订单"
         SET PARAMETER ID 'AUN' FIELD <value>.
         CALL TRANSACTION 'VA03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'VBELN_VL'. "交货单"
         SET PARAMETER ID 'VL' FIELD <value>.
         CALL TRANSACTION 'VL03N' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'VBELN_VF'. "发票"
         SET PARAMETER ID 'VF' FIELD <value>.
         CALL TRANSACTION 'VF03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'RSNUM'. "预留"
         SET PARAMETER ID 'RES' FIELD <value>.
         CALL TRANSACTION  'MB23' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'MBLNR'. "商品凭证"
         ASSIGN COMPONENT 'MJAHR' OF STRUCTURE line TO FIELD-SYMBOL(<mjahr>).
         CHECK sy-subrc EQ 0.
@@ -1489,14 +1704,14 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
             i_refdoc = 'R02'
             i_mblnr  = <value>
             i_mjahr  = <mjahr>.
-
+        bool = abap_true.
       WHEN 'BELNR_R' .            "发票校验"
         ASSIGN COMPONENT 'GJAHR_R' OF STRUCTURE line TO FIELD-SYMBOL(<gjahr_r>).
         CHECK sy-subrc EQ 0.
         SET PARAMETER ID 'RBN' FIELD <value>.
         SET PARAMETER ID 'GJR' FIELD <gjahr_r>.
         CALL TRANSACTION 'MIR4' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'BELNR' .  "会计凭证
         ASSIGN COMPONENT 'GJAHR' OF STRUCTURE line TO FIELD-SYMBOL(<gjahr>).
         CHECK sy-subrc EQ 0.
@@ -1506,27 +1721,34 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
         SET PARAMETER ID 'GJR' FIELD <gjahr>.
         SET PARAMETER ID 'BUK' FIELD <bukrs>.
         CALL TRANSACTION 'FB03' AND SKIP FIRST SCREEN.
-
-      WHEN 'MATNR' OR 'STANR'. "商品"
-        SET PARAMETER ID 'MAT' FIELD <value>.
-        CALL TRANSACTION 'MM43' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
+      WHEN 'MATNR' OR 'SATNR'. "商品"
+        ASSIGN COMPONENT 'WERKS' OF STRUCTURE line TO FIELD-SYMBOL(<werks>).
+        IF sy-subrc EQ 0.
+          SET PARAMETER ID 'WRK' FIELD <werks>.
+          SET PARAMETER ID 'MAT' FIELD <value>.
+          CALL TRANSACTION 'ZMAT' AND SKIP FIRST SCREEN.
+        ELSE.
+          SET PARAMETER ID 'MAT' FIELD <value>.
+          CALL TRANSACTION 'ZMAT' AND SKIP FIRST SCREEN.
+        ENDIF.
+        bool = abap_true.
 
       WHEN 'LIFNR' OR 'KUNNR' . "客户/供应商"
         SET PARAMETER ID 'BPA' FIELD <value>.
         SUBMIT r_ftr_display_bp WITH p_bp = <value> AND RETURN.
-
+        bool = abap_true.
       WHEN 'AUFNR_U' .  "内部订单"
         SET PARAMETER ID 'ANR' FIELD <value>.
         CALL TRANSACTION 'KO03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'SAKNR' OR 'HKONT' . "科目"
         ASSIGN COMPONENT 'BUKRS' OF STRUCTURE line TO FIELD-SYMBOL(<bukrs_skb1>).
         CHECK sy-subrc EQ 0.
         SET PARAMETER ID 'SAK' FIELD <value>.
         SET PARAMETER ID 'BUK' FIELD <bukrs_skb1>.
         CALL TRANSACTION 'FS00' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
 
       WHEN 'ANLA' OR 'ANLN1' OR 'BUS1022'.   "固定资产
         ASSIGN COMPONENT 'BUKRS' OF STRUCTURE line TO FIELD-SYMBOL(<bukrs_as03>).
@@ -1534,25 +1756,29 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
         SET PARAMETER ID 'AN1' FIELD <value>.
         SET PARAMETER ID 'BUK' FIELD <bukrs_as03>.
         CALL TRANSACTION 'AS03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'WERKS'  OR 'UMWRK'. "地点
         SET PARAMETER ID 'WRK' FIELD <value>.
         CALL TRANSACTION 'WB03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'AUFNR' ."生产订单
         SET PARAMETER ID 'ANR' FIELD <value>.
         CALL TRANSACTION 'CO03' AND SKIP FIRST SCREEN.
-
-      WHEN 'KOSTL'.
-        SET PARAMETER ID 'KOS' FIELD <value>.
-        CALL TRANSACTION 'KS03' AND SKIP FIRST SCREEN.
-
+        bool = abap_true.
       WHEN 'DOCNUM' ."IDOC
         SUBMIT idoc_tree_control WITH docnum = <value> AND RETURN.
-
+        bool = abap_true.
       WHEN 'XML' OR 'PROXY'.
         SUBMIT rsxmb_display_msg_vers_new WITH msgguid = <value>
         AND RETURN.
+        bool = abap_true.
+      WHEN 'RUECK' .
+        ASSIGN COMPONENT 'RMZHL' OF STRUCTURE line TO FIELD-SYMBOL(<rmzhl>).
+        CHECK sy-subrc EQ 0.
+        CHECK <rmzhl> IS NOT INITIAL.
+        SET PARAMETER ID 'RCK' FIELD <value>.
+        SET PARAMETER ID 'RZL' FIELD <rmzhl>.
+        CALL TRANSACTION 'CO14' AND SKIP FIRST SCREEN.
     ENDCASE.
 
   ENDMETHOD.
@@ -1636,18 +1862,23 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
     DATA:filename TYPE string.
     DATA:path TYPE string.
     DATA:fullpath TYPE string.
-    cl_gui_frontend_services=>get_desktop_directory( CHANGING desktop_directory = path
-                                                                                    EXCEPTIONS cntl_error = 1
-                                                                                                          error_no_gui = 2
-                                                                                                          not_supported_by_gui = 3 ).
+    DATA file_filter TYPE string.
+    IF cl_gui_control=>www_active IS INITIAL.
+      cl_gui_frontend_services=>get_desktop_directory( CHANGING desktop_directory = path
+                                                                                      EXCEPTIONS cntl_error = 1
+                                                                                                            error_no_gui = 2
+                                                                                                            not_supported_by_gui = 3 ).
+    ENDIF.
     cl_gui_cfw=>flush( ).
-    filename = |{ sy-title }_{ sy-datum  }_{ sy-uzeit }|.
-
+    filename = |{ sy-title }|.
+    CONDENSE filename NO-GAPS.
+*    filename = |{ sy-title }_{ sy-datum  }_{ sy-uzeit }|.
+    file_filter = |{ extname }\|*.{ extname }|.
     cl_gui_frontend_services=>file_save_dialog(
     EXPORTING
       default_file_name       = filename
       default_extension       = extname
-      file_filter             = extname
+      file_filter             = file_filter
       initial_directory = path
     CHANGING
       path            = path
@@ -1679,7 +1910,7 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
                                                                                                           error_no_gui = 2
                                                                                                           not_supported_by_gui = 3 ).
     cl_gui_cfw=>flush( ).
-    filename = |{ sy-title }_{ sy-datum  }_{ sy-uzeit }|.
+*    filename = |{ sy-title }_{ sy-datum  }_{ sy-uzeit }|.
     CALL METHOD cl_gui_frontend_services=>file_open_dialog
       EXPORTING
         default_extension       = extname
@@ -1878,23 +2109,6 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_dynnr_field.
-    CALL FUNCTION 'RS_ISOLATE_1_SELSCREEN'
-      EXPORTING
-        program     = program
-        dynnr       = dynnr
-      TABLES
-        screen_sscr = screen_sscr
-        global_sscr = global_sscr
-      EXCEPTIONS
-        no_objects  = 1
-        OTHERS      = 2.
-    IF sy-subrc <> 0.
-* Implement suitable error handling here
-    ENDIF.
-  ENDMETHOD.
-
-
   METHOD fix_data_column_by_fcat.
 
     DATA:comp_old TYPE abap_component_tab.
@@ -1940,5 +2154,607 @@ CLASS ZWFT_COMMON IMPLEMENTATION.
       DELETE lt_comp WHERE as_include = 'X'.
       APPEND LINES OF lt_comp TO ct_comp.
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD confirm_date.
+    DATA:lt_flds TYPE TABLE OF sval.
+    DATA:ret_code TYPE char1.
+    DATA text TYPE char50.
+    DATA datetext TYPE char50.
+
+    text = COND #( WHEN iv_text IS INITIAL THEN TEXT-t03
+                                  ELSE iv_text ).
+
+    datetext = COND #( WHEN iv_datetext IS INITIAL THEN TEXT-t02
+                                                                  ELSE iv_datetext ).
+
+    APPEND VALUE #( tabname = 'MKPF'
+                                    fieldname = 'BUDAT'
+                                    value = COND #( WHEN iv_default IS INITIAL THEN sy-datum
+                                                                ELSE iv_default )
+                                    fieldtext = datetext
+                                    field_obl = abap_true
+                                    ) TO lt_flds.
+
+    CALL FUNCTION 'POPUP_GET_VALUES'
+      EXPORTING
+        popup_title     = text
+      IMPORTING
+        returncode      = ret_code
+      TABLES
+        fields          = lt_flds
+      EXCEPTIONS
+        error_in_fields = 1
+        OTHERS          = 2.
+    IF ret_code = 'A'.
+      MESSAGE s004.
+      bool = abap_false.
+      RETURN.
+    ENDIF.
+
+    ev_date = lt_flds[ fieldname = 'BUDAT' ]-value.
+    IF ev_date IS INITIAL.
+      bool = abap_false.
+    ELSE.
+      bool = abap_true.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD fcat_from_config.
+    SELECT * FROM zwft_screen
+      INTO TABLE @DATA(lt_screen)
+        WHERE repid = @sy-cprog
+      AND name = @i_name.
+    CHECK sy-subrc EQ 0.
+    LOOP AT ct_fcat ASSIGNING FIELD-SYMBOL(<fcat>).
+      READ TABLE lt_screen INTO DATA(ls_screen) WITH KEY fieldname = <fcat>-fieldname.
+      IF sy-subrc NE 0.
+        <fcat>-tech = 'X'.
+        <fcat>-col_pos = 999.
+      ELSE.
+        <fcat> = VALUE #( BASE <fcat>
+                                        col_pos = ls_screen-dzaehk
+                                        coltext = ls_screen-coltext
+                                        edit = ls_screen-edit
+                                        tech = ls_screen-hidde
+                                        emphasize = ls_screen-emphasize
+                                        outputlen = ls_screen-outputlen
+                                        hotspot = COND #( WHEN ls_screen-style = 'HOTSPOT' THEN 'X' ELSE '' )
+                                        checkbox = COND #( WHEN ls_screen-style = 'CHECKBOX' THEN 'X' ELSE '' )
+                                        drdn_hndl = COND #( WHEN ls_screen-style+0(4) = 'LIST' THEN ls_screen-style+4(7) ELSE '' )
+                                        f4availabl = COND #( WHEN ls_screen-style = 'F4' THEN 'X' ELSE '' )
+                                        lzero = COND #( WHEN ls_screen-style = 'LZERO' THEN 'X' ELSE '' )
+                                        no_zero = COND #( WHEN <fcat>-inttype = 'P' THEN 'X' ELSE '' )
+                                        edit_mask = COND #( WHEN ls_screen-style+0(2) = '==' THEN <fcat>-style  )
+                                        ).
+
+      ENDIF.
+      IF <fcat>-inttype = 'P'.
+        <fcat>-edit_mask = '==PRICE'.
+      ENDIF.
+      IF <fcat>-fieldname = 'MATKL'.
+        <fcat>-edit_mask = '==ZMATK'.
+      ENDIF.
+    ENDLOOP.
+
+    READ TABLE ct_fcat ASSIGNING <fcat> WITH KEY fieldname = 'MEINS'.
+    IF sy-subrc EQ 0.
+      <fcat>-edit_mask = '==ZMEIN'.
+      LOOP AT ct_fcat ASSIGNING <fcat> WHERE inttype = 'P'.
+        <fcat>-qfieldname = 'MEINS'.
+      ENDLOOP.
+    ENDIF.
+    SORT ct_fcat BY col_pos.
+  ENDMETHOD.
+
+
+  METHOD get_dynnr_field.
+    CALL FUNCTION 'RS_SCRP_GET_SCREEN_INFOS'
+      EXPORTING
+        dynnr                 = dynnr
+        progname              = progname
+*       WITH_FIELDLIST        = ' '
+*       WITH_TEMPLATELIST     = ' '
+*       TEXT_LANGUAGE         = ' '
+*     IMPORTING
+*       LINES                 =
+*       COLUMNS               =
+      TABLES
+        fieldlist             = field_list
+*       TEMPLATELIST          =
+      EXCEPTIONS
+        dynpro_does_not_exist = 1
+        no_field_list         = 2
+        cancelled             = 3
+        OTHERS                = 4.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_function_interface.
+    DATA:lt_params TYPE bgrfc_funint_t.
+    CALL FUNCTION 'RFC_GET_FUNCTION_INTERFACE'
+      EXPORTING
+        funcname             = i_funcname
+      TABLES
+        params               = lt_params
+        resumable_exceptions = et_rsexc
+      EXCEPTIONS
+        fu_not_found         = 1
+        nametab_fault        = 2
+        OTHERS               = 3.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    SELECT * INTO TABLE @DATA(lt_fupa) FROM fupararef
+          WHERE funcname = @i_funcname
+          ORDER BY paramtype, pposition.
+
+    LOOP AT lt_fupa INTO DATA(ls_fupa) WHERE paramtype = 'I'.
+      READ TABLE lt_params INTO DATA(ls_params) WITH KEY parameter = ls_fupa-parameter.
+      IF sy-subrc EQ 0.
+        APPEND ls_params TO rt_params.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_fupa INTO ls_fupa WHERE paramtype = 'E'.
+      READ TABLE lt_params INTO ls_params WITH KEY parameter = ls_fupa-parameter.
+      IF sy-subrc EQ 0.
+        APPEND ls_params TO rt_params.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_fupa INTO ls_fupa WHERE paramtype = 'C'.
+      READ TABLE lt_params INTO ls_params WITH KEY parameter = ls_fupa-parameter.
+      IF sy-subrc EQ 0.
+        APPEND ls_params TO rt_params.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_fupa INTO ls_fupa WHERE paramtype = 'T'.
+      READ TABLE lt_params INTO ls_params WITH KEY parameter = ls_fupa-parameter.
+      IF sy-subrc EQ 0.
+        APPEND ls_params TO rt_params.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+  METHOD get_next_code_36.
+    e_code = 0.
+    DATA fdpos TYPE sy-fdpos.
+    DATA code TYPE char40 VALUE '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.
+    SEARCH code  FOR i_code.
+    CHECK sy-subrc EQ 0.
+    fdpos = sy-fdpos + 1.
+    IF fdpos <= 35.
+      e_code = code+fdpos(1).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD get_screen_xy_point.
+
+    DATA(metric) = cl_gui_props_consumer=>create_consumer( )->get_metric_factors( ).
+    x = metric-screen-x.
+    y = metric-screen-y.
+    charx = metric-screen-x / metric-char-x.
+    chary = metric-screen-y / metric-char-y.
+  ENDMETHOD.
+
+
+  METHOD get_select_dynnr_field.
+    CALL FUNCTION 'RS_ISOLATE_1_SELSCREEN'
+      EXPORTING
+        program     = program
+        dynnr       = dynnr
+      TABLES
+        screen_sscr = screen_sscr
+        global_sscr = global_sscr
+      EXCEPTIONS
+        no_objects  = 1
+        OTHERS      = 2.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD get_status_functions.
+    CALL FUNCTION 'RS_CUA_GET_STATUS_FUNCTIONS'
+      EXPORTING
+*       LANGUAGE          = ' '
+        program           = program
+        status            = status
+*       WITHOUT_TEXTS     = ' '
+*     IMPORTING
+*       MASTER_LANGUAGE   =
+      TABLES
+*       FUNCTIONS         =
+        function_list     = functions
+      EXCEPTIONS
+        menu_not_found    = 1
+        program_not_found = 2
+        status_not_found  = 3
+        OTHERS            = 4.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD number_conv_end_no_zero.
+    DATA : l_str  TYPE  string .
+    l_str = C_TEXT.
+    FIND '.' IN l_str.
+    CHECK sy-subrc EQ 0.
+
+    IF  C_TEXT  IS  NOT  INITIAL .
+      l_str  =  C_TEXT .
+      CONDENSE  l_str .  " 去掉没用的小数位的0
+      SHIFT  l_str RIGHT DELETING TRAILING  '0' . "去掉没用的小数位的0
+      SHIFT  l_str RIGHT DELETING TRAILING  '.' . "去掉没用的小数位的0
+    ELSE .
+      l_str  =  '' . "为空就给个空值
+    ENDIF .
+    CONDENSE  l_str .
+    c_text  =  l_str .
+  ENDMETHOD.
+
+
+METHOD search_material.
+
+  DATA:l_matnr TYPE matnr.
+  DATA: return_tab TYPE TABLE OF ddshretval.
+
+  matnr = |{ matnr ALPHA = OUT }|.
+
+  CHECK matnr IS NOT INITIAL .
+
+  CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
+    EXPORTING
+      input        = matnr
+    IMPORTING
+      output       = l_matnr
+    EXCEPTIONS
+      length_error = 1
+      OTHERS       = 2.
+
+  SELECT SINGLE mara~matnr INTO @l_matnr
+  FROM mara
+  INNER JOIN marc ON mara~matnr = marc~matnr
+  LEFT JOIN makt ON mara~matnr = makt~matnr AND makt~spras = @sy-langu
+  WHERE ( mara~matnr = @l_matnr
+  OR makt~maktx = @l_matnr )
+  AND mtart IN @range_mtart
+  AND matkl IN @range_matkl
+  AND werks = @werks.
+  IF sy-subrc EQ 0.
+    matnr = l_matnr.
+    RETURN.
+  ENDIF.
+
+  FIND '*' IN matnr.
+  IF sy-subrc EQ 0.
+    REPLACE ALL OCCURRENCES OF  '*' IN matnr WITH '%'.
+  ELSE.
+    matnr = |%{ matnr }%|.
+  ENDIF.
+
+  SELECT
+  DISTINCT
+  mara~matnr,
+  makt~maktx,
+  mara~matkl
+  INTO TABLE @DATA(lt_mara)
+        FROM mara
+        INNER JOIN marc ON mara~matnr = marc~matnr
+        LEFT JOIN makt ON mara~matnr = makt~matnr AND makt~spras = @sy-langu
+        WHERE ( mara~matnr LIKE @matnr
+        OR makt~maktx LIKE @matnr )
+        AND mtart IN @range_mtart
+        AND matkl IN @range_matkl
+        AND werks = @werks.
+
+
+  IF lines( lt_mara ) EQ 0.
+    CLEAR matnr.
+    MESSAGE '物料不存在' TYPE 'S' DISPLAY LIKE 'E'.
+  ELSEIF lines( lt_mara ) EQ 1.
+    matnr = lt_mara[ 1 ]-matnr.
+  ELSE.
+    CLEAR matnr.
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        value_org  = 'S'
+        retfield   = 'MATNR'
+      TABLES
+        value_tab  = lt_mara
+        return_tab = return_tab.
+    READ TABLE return_tab INTO DATA(l_return) INDEX 1.
+    CHECK sy-subrc EQ 0.
+    matnr = l_return-fieldval.
+  ENDIF.
+
+  CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
+    EXPORTING
+      input        = matnr
+    IMPORTING
+      output       = matnr
+    EXCEPTIONS
+      length_error = 1
+      OTHERS       = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+
+ENDMETHOD.
+
+
+  METHOD date_to_chinese.
+    DATA(year) = i_date+0(4).
+    DATA(month) = i_date+4(2).
+    DATA(day) = i_date+6(2).
+    IF month+0(1) = '0'.
+      month = month+1(1).
+    ENDIF.
+    IF day+0(1) = '0'.
+      day = day+1(1).
+    ENDIF.
+    r_text = |{ year }年{ month }月{ day }日|.
+  ENDMETHOD.
+
+
+  METHOD NUMBER_TO_CHINESE.
+    IF i_money = 0.
+      r_text = '零'.
+      EXIT.
+    ENDIF.
+    DATA:money_str(13).
+    money_str = i_money.
+    IF money_str CN '0123456789. '.
+*      RAISE wrong_money.
+    ENDIF.
+    DATA:i TYPE i.
+    IF money_str CS '.'.
+      i = sy-fdpos + 1.
+      money_str+sy-fdpos = money_str+i.
+    ENDIF.
+    CONDENSE money_str NO-GAPS.
+    DATA:units_off TYPE i,
+         curnt_off TYPE i.
+    DATA:lastd  TYPE n,curntd TYPE n.
+    DATA:cword(2),weight(2).
+    DATA:units(30) VALUE '分角元拾佰仟万拾佰仟亿拾佰仟万',
+         digts(20) VALUE '零壹贰叁肆伍陆柒捌玖'.
+* clear:r_text,units_off.
+    lastd = 0.
+    curnt_off = strlen( money_str ) - 1.
+    WHILE curnt_off >= 0.
+      curntd = money_str+curnt_off(1).
+      cword = digts+curntd(1).
+      weight = units+units_off(1).
+      IF curntd = 0. "Current digit is 0
+        IF units_off = 2 OR units_off = 6 OR units_off = 10.
+          CLEAR:cword.
+          IF curnt_off = 0.
+            CLEAR:weight.
+          ENDIF.
+        ELSEIF lastd = 0.
+          CLEAR:cword,weight.
+        ELSE.
+          CLEAR:weight.
+        ENDIF.
+      ENDIF.
+      CONCATENATE cword weight r_text INTO r_text.
+      lastd = curntd.
+      SUBTRACT 1 FROM curnt_off.
+      ADD 1 TO units_off.
+    ENDWHILE.
+    IF r_text NS '分'.
+      CONCATENATE r_text '整' INTO r_text.
+    ELSE.
+      cword = r_text.
+      IF cword = '零'.
+        SHIFT r_text BY 1 PLACES.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD search_data.
+
+    DATA spopli TYPE TABLE OF spopli.
+    DATA return_index(3) TYPE c.
+
+    LOOP AT value_tab ASSIGNING FIELD-SYMBOL(<data>).
+      IF name_field IS NOT INITIAL.
+        ASSIGN COMPONENT name_field OF STRUCTURE <data> TO FIELD-SYMBOL(<value>).
+      ELSE.
+        ASSIGN COMPONENT value_field OF STRUCTURE <data> TO <value>.
+      ENDIF.
+      CHECK sy-subrc EQ 0.
+      APPEND VALUE #( varoption = <value> ) TO spopli.
+    ENDLOOP.
+
+    CALL FUNCTION 'POPUP_TO_DECIDE_LIST'
+      EXPORTING
+        start_col          = 20
+        start_row          = 5
+        textline1          = line
+        titel              = titel
+        display_only       = readonly
+      IMPORTING
+        answer             = return_index
+      TABLES
+        t_spopli           = spopli
+      EXCEPTIONS
+        not_enough_answers = 1
+        too_much_answers   = 2
+        too_much_marks     = 3
+        OTHERS             = 4.
+    IF sy-subrc <> 0.
+      CLEAR return_value.
+    ENDIF.
+    CHECK return_index <> 'A'.
+    read TABLE value_tab INDEX return_index ASSIGNING <data>.
+    CHECK sy-subrc EQ 0.
+    ASSIGN COMPONENT value_field OF STRUCTURE <data> TO <value>.
+    CHECK sy-subrc EQ 0.
+    return_value = <value>.
+  ENDMETHOD.
+
+
+  METHOD FILE_UPLOAD_BIN.
+    TYPES: BEGIN OF ty_pic,
+             pic_data(1024) TYPE x,
+           END OF ty_pic.
+    DATA: pic_tab     TYPE TABLE OF ty_pic.
+    DATA: len         TYPE i.
+
+    DATA(pv_path) = file_get_read_path( extname = '' ).
+
+    CALL FUNCTION 'GUI_UPLOAD'
+      EXPORTING
+        filename   = |{ pv_path }|
+        filetype   = filetype
+      IMPORTING
+        filelength = len
+*       HEADER     =
+      TABLES
+        data_tab   = pic_tab.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+    CALL FUNCTION 'SCMS_BINARY_TO_XSTRING'
+      EXPORTING
+        input_length = len
+      IMPORTING
+        buffer       = DATA
+      TABLES
+        binary_tab   = pic_tab[]
+      EXCEPTIONS
+        failed       = 1
+        OTHERS       = 2.
+
+
+
+
+
+
+  ENDMETHOD.
+
+
+  METHOD system_callstack.
+    DATA callstack TYPE abap_callstack.
+    CALL FUNCTION 'SYSTEM_CALLSTACK'
+      EXPORTING
+        max_level    = 0
+      IMPORTING
+        callstack    = callstack
+        et_callstack = callst.
+
+    DELETE callst WHERE eventname = 'SYSTEM_CALLSTACK'.
+
+  ENDMETHOD.
+
+
+  METHOD date_get_last_day_of_month.
+    CALL FUNCTION 'RP_LAST_DAY_OF_MONTHS'
+      EXPORTING
+        day_in            = i_date
+      IMPORTING
+        last_day_of_month = r_date
+      EXCEPTIONS
+        day_in_no_date    = 1
+        OTHERS            = 2.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_fields_dfies_by_data.
+
+    DATA structdescr TYPE REF TO cl_abap_structdescr.
+    DATA tabledescr TYPE REF TO cl_abap_tabledescr.
+
+    CASE cl_abap_typedescr=>describe_by_data( data )->type_kind.
+      WHEN cl_abap_typedescr=>typekind_struct1.
+        structdescr ?= cl_abap_structdescr=>describe_by_data( data ).
+        rt_dfies = cl_salv_data_descr=>read_structdescr( structdescr ).
+      WHEN cl_abap_typedescr=>typekind_table.
+        tabledescr ?= cl_abap_tabledescr=>describe_by_data( data ).
+        structdescr ?= tabledescr->get_table_line_type( ).
+        rt_dfies = cl_salv_data_descr=>read_structdescr( structdescr ).
+    ENDCASE.
+
+
+  ENDMETHOD.
+
+
+  METHOD reg_get_dword.
+    cl_gui_frontend_services=>registry_get_dword_value( EXPORTING root = cl_gui_frontend_services=>hkey_current_user
+                                                                                                                  key = key
+                                                                                                                  value = value
+                                                                                                             IMPORTING reg_value = dword_value
+                                                                                                            EXCEPTIONS cntl_error = 1
+                                                                                                              error_no_gui = 2
+                                                                                                              not_supported_by_gui = 3
+                                                                                                              ).
+    cl_gui_cfw=>flush( EXCEPTIONS OTHERS = 0 ) .
+  ENDMETHOD.
+
+
+  METHOD reg_get_word.
+    cl_gui_frontend_services=>registry_get_value( EXPORTING root = cl_gui_frontend_services=>hkey_current_user
+                                                                                                                  key = key
+                                                                                                                  value = value_name
+                                                                                                             IMPORTING reg_value = value
+                                                                                                            EXCEPTIONS cntl_error = 1
+                                                                                                              error_no_gui = 2
+                                                                                                              not_supported_by_gui = 3
+                                                                                                              ).
+    cl_gui_cfw=>flush( EXCEPTIONS OTHERS = 0 ) .
+  ENDMETHOD.
+
+
+  METHOD reg_set_dword.
+    DATA rc TYPE i.
+    cl_gui_frontend_services=>registry_set_dword_value( EXPORTING root = cl_gui_frontend_services=>hkey_current_user
+      key = key
+      value = value
+      dword_value = dword_value
+    IMPORTING rc = rc
+    EXCEPTIONS cntl_error = 1
+      error_no_gui = 2
+      not_supported_by_gui = 3
+      ).
+    cl_gui_cfw=>flush( EXCEPTIONS OTHERS = 0 ) .
+  ENDMETHOD.
+
+
+  METHOD reg_set_word.
+    DATA rc TYPE i.
+    cl_gui_frontend_services=>registry_set_value( EXPORTING root = cl_gui_frontend_services=>hkey_current_user
+      key = key
+      value_name = value_name
+      value = value
+    IMPORTING rc = rc
+    EXCEPTIONS cntl_error = 1
+      error_no_gui = 2
+      not_supported_by_gui = 3
+      ).
+    cl_gui_cfw=>flush( EXCEPTIONS OTHERS = 0 ) .
   ENDMETHOD.
 ENDCLASS.

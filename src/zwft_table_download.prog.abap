@@ -3,7 +3,7 @@
 *&---------------------------------------------------------------------*
 *&
 *&---------------------------------------------------------------------*
-REPORT zwft_config_down.
+REPORT zwft_table_download.
 TYPES:BEGIN OF ty_data,
         tabname TYPE tabname,
         ddtext  TYPE as4text,

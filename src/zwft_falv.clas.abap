@@ -525,6 +525,7 @@ public section.
   methods SET_OUTPUT_TABLE
     changing
       !CT_TABLE type STANDARD TABLE .
+  methods EXCLUDE_EDIT_FUNCTION .
 
   methods SET_FRONTEND_FIELDCATALOG
     redefinition .
@@ -726,102 +727,102 @@ public section.
   FOR EVENT at_set_pf_status OF ZWFT_FALV.
   METHODS evf_at_set_title
   FOR EVENT at_set_title OF ZWFT_FALV.
-  PRIVATE SECTION.
+private section.
 
-  CLASS-DATA CREATED_FROM_FACTORY TYPE ABAP_BOOL .
-  DATA TOP_OF_PAGE_DOC TYPE REF TO CL_DD_DOCUMENT .
-  DATA TOP_OF_PAGE_VISIBLE_AT_START TYPE ABAP_BOOL .
-  DATA REPID TYPE SY-REPID .
-  DATA MT_EVENTS TYPE SLIS_T_EVENT .
-  DATA SUFFIX TYPE FINB_GN_SUFFIX .
+  class-data CREATED_FROM_FACTORY type ABAP_BOOL .
+  data TOP_OF_PAGE_DOC type ref to CL_DD_DOCUMENT .
+  data TOP_OF_PAGE_VISIBLE_AT_START type ABAP_BOOL .
+  data REPID type SY-REPID .
+  data MT_EVENTS type SLIS_T_EVENT .
+  data SUFFIX type FINB_GN_SUFFIX .
 
-  CLASS-METHODS CHECK_IF_CALLED_FROM_SUBCLASS
-  returning
-  VALUE(RO_SUBCLASS) TYPE REF TO OBJECT .
-  CLASS-METHODS CREATE_CONTAINTERS
-  IMPORTING
-    !I_PARENT TYPE REF TO CL_GUI_CONTAINER
-    !I_APPLOGPARENT TYPE REF TO CL_GUI_CONTAINER
-    !I_POPUP TYPE ABAP_BOOL
-    !I_APPLOG_EMBEDDED TYPE ABAP_BOOL
-  EXPORTING
-    !E_BUILT_IN_SCREEN TYPE ABAP_BOOL
-    !E_PARENT TYPE REF TO CL_GUI_CONTAINER
-    !E_APPLOG TYPE REF TO CL_GUI_CONTAINER
-    !E_TOP_OF_PAGE_PARENT TYPE REF TO CL_GUI_CONTAINER
-    !E_CUSTOM_CONTAINER TYPE REF TO CL_GUI_CONTAINER
-    !E_MAIN_SPLIT_CONTAINER TYPE REF TO CL_GUI_SPLITTER_CONTAINER
-    !E_SPLIT_CONTAINER TYPE REF TO CL_GUI_SPLITTER_CONTAINER .
-  CLASS-METHODS CREATE_FALV_OBJECT
-  IMPORTING
-    !I_SUBCLASS TYPE REF TO CL_ABAP_TYPEDESCR
-    !I_PARENT TYPE REF TO CL_GUI_CONTAINER
-    !I_APPLOG TYPE REF TO CL_GUI_CONTAINER
+  class-methods CHECK_IF_CALLED_FROM_SUBCLASS
     returning
-    VALUE(RV_FALV) TYPE REF TO ZWFT_FALV .
-  CLASS-METHODS LINK_CONTAINERS
-  IMPORTING
-    !IV_FALV TYPE REF TO ZWFT_FALV
-    !I_TOP_OF_PAGE_PARENT TYPE REF TO CL_GUI_CONTAINER
-    !I_CUSTOM_CONTAINER TYPE REF TO CL_GUI_CONTAINER
-    !I_MAIN_SPLIT_CONTAINER TYPE REF TO CL_GUI_SPLITTER_CONTAINER
-    !I_SPLIT_CONTAINER TYPE REF TO CL_GUI_SPLITTER_CONTAINER .
-  CLASS-METHODS CREATE_MAIN_SPLIT_COTAINER
-  IMPORTING
-    !I_POPUP TYPE ABAP_BOOL
-    !I_APPLOG_EMBEDDED TYPE ABAP_BOOL
-    !I_MAIN_PARENT TYPE REF TO CL_GUI_CONTAINER
+      value(RO_SUBCLASS) type ref to OBJECT .
+  class-methods CREATE_CONTAINTERS
+    importing
+      !I_PARENT type ref to CL_GUI_CONTAINER
+      !I_APPLOGPARENT type ref to CL_GUI_CONTAINER
+      !I_POPUP type ABAP_BOOL
+      !I_APPLOG_EMBEDDED type ABAP_BOOL
+    exporting
+      !E_BUILT_IN_SCREEN type ABAP_BOOL
+      !E_PARENT type ref to CL_GUI_CONTAINER
+      !E_APPLOG type ref to CL_GUI_CONTAINER
+      !E_TOP_OF_PAGE_PARENT type ref to CL_GUI_CONTAINER
+      !E_CUSTOM_CONTAINER type ref to CL_GUI_CONTAINER
+      !E_MAIN_SPLIT_CONTAINER type ref to CL_GUI_SPLITTER_CONTAINER
+      !E_SPLIT_CONTAINER type ref to CL_GUI_SPLITTER_CONTAINER .
+  class-methods CREATE_FALV_OBJECT
+    importing
+      !I_SUBCLASS type ref to CL_ABAP_TYPEDESCR
+      !I_PARENT type ref to CL_GUI_CONTAINER
+      !I_APPLOG type ref to CL_GUI_CONTAINER
     returning
-    VALUE(R_MAIN_SPLIT_CONTAINER) TYPE REF TO CL_GUI_SPLITTER_CONTAINER .
-  CLASS-METHODS CREATE_MAIN_CONT_FOR_FULL_SCR
-  IMPORTING
-    !I_POPUP TYPE ABAP_BOOL
+      value(RV_FALV) type ref to ZWFT_FALV .
+  class-methods LINK_CONTAINERS
+    importing
+      !IV_FALV type ref to ZWFT_FALV
+      !I_TOP_OF_PAGE_PARENT type ref to CL_GUI_CONTAINER
+      !I_CUSTOM_CONTAINER type ref to CL_GUI_CONTAINER
+      !I_MAIN_SPLIT_CONTAINER type ref to CL_GUI_SPLITTER_CONTAINER
+      !I_SPLIT_CONTAINER type ref to CL_GUI_SPLITTER_CONTAINER .
+  class-methods CREATE_MAIN_SPLIT_COTAINER
+    importing
+      !I_POPUP type ABAP_BOOL
+      !I_APPLOG_EMBEDDED type ABAP_BOOL
+      !I_MAIN_PARENT type ref to CL_GUI_CONTAINER
     returning
-    VALUE(R_CUSTOM_CONTAINER) TYPE REF TO CL_GUI_CONTAINER .
-  CLASS-METHODS CRATE_MAIN_SPLITTER
-  IMPORTING
-    !I_MAIN_SPLIT_CONTAINER TYPE REF TO CL_GUI_SPLITTER_CONTAINER
+      value(R_MAIN_SPLIT_CONTAINER) type ref to CL_GUI_SPLITTER_CONTAINER .
+  class-methods CREATE_MAIN_CONT_FOR_FULL_SCR
+    importing
+      !I_POPUP type ABAP_BOOL
     returning
-    VALUE(R_SPLIT_CONTAINER) TYPE REF TO CL_GUI_SPLITTER_CONTAINER .
-  METHODS EVF_BEFORE_UCOMMAND_INTERNAL
-  FOR EVENT BEFORE_USER_COMMAND OF CL_GUI_ALV_GRID
-  IMPORTING
-    !E_UCOMM  ##NEEDED.
-  METHODS EVF_TOOLBAR_INTERNAL
-  FOR EVENT TOOLBAR OF CL_GUI_ALV_GRID
-  IMPORTING
-    !E_OBJECT
-    !E_INTERACTIVE  ##NEEDED.
-  METHODS EVF_DATA_CHANGED_INTERNAL
-  FOR EVENT DATA_CHANGED OF CL_GUI_ALV_GRID
-  IMPORTING
-    !ER_DATA_CHANGED
-    !E_ONF4
-    !E_ONF4_BEFORE
-    !E_ONF4_AFTER
-    !E_UCOMM  ##NEEDED.
-  METHODS SET_PARENT
-  IMPORTING
-    !IO_PARENT TYPE REF TO OBJECT
+      value(R_CUSTOM_CONTAINER) type ref to CL_GUI_CONTAINER .
+  class-methods CRATE_MAIN_SPLITTER
+    importing
+      !I_MAIN_SPLIT_CONTAINER type ref to CL_GUI_SPLITTER_CONTAINER
     returning
-    VALUE(R_FALV) TYPE REF TO ZWFT_FALV .
-  METHODS BUILD_COLUMNS .
-  METHODS RAISE_TOP_OF_PAGE .
-  METHODS SET_HANDLERS
-  IMPORTING
-    !IV_FALV TYPE REF TO ZWFT_FALV .
-  METHODS SET_EVENTS_SUFFIX
-  IMPORTING
-    VALUE(IV_FALV) TYPE REF TO ZWFT_FALV .
-  METHODS SET_EVENTS
-  IMPORTING
-    !IV_FALV TYPE REF TO ZWFT_FALV .
-  METHODS COPY_ATTRIBUTES
-  IMPORTING
-    !I_FALV TYPE REF TO ZWFT_FALV .
-  METHODS CREATE_EX_RESULT_FALV
-  returning
-  VALUE(ER_RESULT_TABLE) TYPE REF TO CL_SALV_EX_RESULT_DATA_TABLE .
+      value(R_SPLIT_CONTAINER) type ref to CL_GUI_SPLITTER_CONTAINER .
+  methods EVF_BEFORE_UCOMMAND_INTERNAL
+    for event BEFORE_USER_COMMAND of CL_GUI_ALV_GRID
+    importing
+      !E_UCOMM  ##NEEDED.
+  methods EVF_TOOLBAR_INTERNAL
+    for event TOOLBAR of CL_GUI_ALV_GRID
+    importing
+      !E_OBJECT
+      !E_INTERACTIVE  ##NEEDED.
+  methods EVF_DATA_CHANGED_INTERNAL
+    for event DATA_CHANGED of CL_GUI_ALV_GRID
+    importing
+      !ER_DATA_CHANGED
+      !E_ONF4
+      !E_ONF4_BEFORE
+      !E_ONF4_AFTER
+      !E_UCOMM  ##NEEDED.
+  methods SET_PARENT
+    importing
+      !IO_PARENT type ref to OBJECT
+    returning
+      value(R_FALV) type ref to ZWFT_FALV .
+  methods BUILD_COLUMNS .
+  methods RAISE_TOP_OF_PAGE .
+  methods SET_HANDLERS
+    importing
+      !IV_FALV type ref to ZWFT_FALV .
+  methods SET_EVENTS_SUFFIX
+    importing
+      value(IV_FALV) type ref to ZWFT_FALV .
+  methods SET_EVENTS
+    importing
+      !IV_FALV type ref to ZWFT_FALV .
+  methods COPY_ATTRIBUTES
+    importing
+      !I_FALV type ref to ZWFT_FALV .
+  methods CREATE_EX_RESULT_FALV
+    returning
+      value(ER_RESULT_TABLE) type ref to CL_SALV_EX_RESULT_DATA_TABLE .
 ENDCLASS.
 
 
@@ -1627,12 +1628,15 @@ ENDMETHOD.
 
 
   METHOD evf_context_menu_request.
+*    e_object->add_function( fcode = mc_fc_loc_copy text  = '复制文本'  ).
+*    e_object->add_function( fcode = mc_fc_loc_paste text  = '粘贴文本'  ).
     PERFORM (cb_context_menu_request) IN PROGRAM (repid) IF FOUND USING me       "ZCL_SALV
           e_object."CL_CTMENU
   ENDMETHOD.
 
 
   METHOD evf_context_menu_selected.
+    BREAK-POINT.
     PERFORM (cb_context_menu_selected) IN PROGRAM (repid) IF FOUND USING me    "ZCL_SALV
           fcode."C
   ENDMETHOD.
@@ -2940,5 +2944,28 @@ ENDMETHOD.
       finished       = 0
       OTHERS         = 0 ).
     r_falv = me.
+  ENDMETHOD.
+
+
+  METHOD exclude_edit_function.
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_copy_row ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_delete_row ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_append_row ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_insert_row ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_move_row ).
+*    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_copy ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_cut ).
+*    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_paste ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_paste_new_row ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_loc_undo ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_graph ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_info ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_refresh ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_detail ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_views ).
+    me->exclude_function( cl_gui_alv_grid=>mc_fc_print ).
+
+    m_cl_context_menu->add_function( fcode = mc_fc_loc_copy  TEXT = '').
+    m_cl_context_menu->add_function( fcode = mc_fc_loc_paste  TEXT = '').
   ENDMETHOD.
 ENDCLASS.
